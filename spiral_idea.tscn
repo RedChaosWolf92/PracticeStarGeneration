@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3 uid="uid://brrpgp1eefp8h"]
+
+[ext_resource type="Script" path="res://Spiral_Idea.gd" id="1_2w7cg"]
+[ext_resource type="PackedScene" uid="uid://mnggnfguq6d8" path="res://Galaxy/Stars/StarTemplates.tscn" id="3_mr6bt"]
+[ext_resource type="Script" path="res://Camera2D.gd" id="3_wc1xs"]
+
+[node name="Spiral_Idea" type="Node2D"]
+script = ExtResource("1_2w7cg")
+
+[node name="GalaxyView" type="Camera2D" parent="."]
+script = ExtResource("3_wc1xs")
+
+[node name="StarTemplates" parent="." instance=ExtResource("3_mr6bt")]
