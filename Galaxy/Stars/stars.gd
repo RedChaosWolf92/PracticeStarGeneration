@@ -4,10 +4,10 @@ signal stars_ready
 
 var star_types = []
 
-@export var NUM_STARS: int = 250
+@export var NUM_STARS: int = 500
 
 var OFFSET_RANGE = 2400
-var SCALE_FACTOR = .38
+var SCALE_FACTOR = .46
 
 const MAX_ATTEMPTS = 15
 const DISPLACEMENT_STDEV = 11.2

@@ -1,7 +1,8 @@
 extends Node2D
 
 var starPaths = {} # to store references to stars and their paths
-const MAX_DISTANCE = 15000
+const MAX_DISTANCE = 25000
+const MIN_DISTANCE = 500
 const MAX_ATTEMPT = 15
 
 class StarComparator:
@@ -26,6 +27,7 @@ class StarComparator:
 func generate_paths():
 	var all_stars = get_tree().get_nodes_in_group("stars")
 	for star in all_stars:
+		starPaths[star] = 0
 		var max_paths = get_max_paths(star.star_type)
 		var nearby_stars = get_nearby_stars(star, all_stars)
 		for i in range(min(max_paths,nearby_stars.size())):
@@ -36,13 +38,27 @@ func generate_paths():
 func get_nearby_stars(ref_star, all_stars):
 	var nearby_stars = []
 	for star in all_stars:
-		if star != ref_star and star.global_position.distance_to(ref_star.global_position) <= MAX_DISTANCE:
+		var distance = star.global_position.distance_to(ref_star.global_position)
+		if star != ref_star and distance <= MAX_DISTANCE and distance > MIN_DISTANCE:
 			nearby_stars.append(star)
+	if nearby_stars.size() ==0:
+		nearby_stars.append(get_closest_star(ref_star, all_stars))
 
 	var comparator = StarComparator.new(ref_star)
 	nearby_stars.sort_custom(Callable(comparator, "compare"))
 	
 	return nearby_stars
+
+func get_closest_star(ref_star, all_stars):
+	var closest_star = null
+	var min_distance = INF
+	for star in all_stars:
+		var distance = star.global_position.distance_to(ref_star.global_position)
+		if star != ref_star and distance < min_distance:
+			min_distance = distance
+			closest_star = star
+	return closest_star
+
 	
 func path_exists_between(star1, star2):
 	for path in star1.get_node("StarPaths").get_children():
@@ -73,8 +89,13 @@ func get_max_paths(star_type):
 	return 0
 	
 func add_path_between(star1, star2):
-	#check if either star has reached their maxium path count
-	if star1.get_node("StarPaths").get_child_count() >= get_max_paths(star1.star_type) or star2.get_node("StarPaths").get_child_count() >= get_max_paths(star2.star_type):
+	#check if stars are in the dictionary
+	if star1 in starPaths and star2 in starPaths:
+		#check if either star has reached their maxium path count
+		if starPaths[star1] >= get_max_paths(star1.star_type) or starPaths[star2] >= get_max_paths(star2.star_type):
+			return
+	else:
+		print("Star not found in Dictionary!")
 		return
 	
 	#add a check for existing paths
@@ -93,6 +114,10 @@ func add_path_between(star1, star2):
 	line.points = [star1.global_position, star2.global_position]
 	
 	get_parent().add_child(line)
+	
+	#increase path count for each star
+	starPaths[star1] += 1
+	starPaths[star2] += 1
 	
 	#add the lines as a child to the StarPaths nodes of both stars
 	#star1.get_node("StarPaths").add_child(line)
