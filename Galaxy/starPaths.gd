@@ -1,9 +1,8 @@
 extends Node2D
 
 var starPaths = {} # to store references to stars and their paths
-const MAX_DISTANCE = 10000
+const MAX_DISTANCE = 15000
 const MAX_ATTEMPT = 15
-const scale_factor = .79
 
 class StarComparator:
 	var ref_star
@@ -32,7 +31,7 @@ func generate_paths():
 		for i in range(min(max_paths,nearby_stars.size())):
 			var other_star = nearby_stars[i]
 			if not path_exists_between(star, other_star):
-				add_path_between(star, other_star, scale_factor)
+				add_path_between(star, other_star)
 
 func get_nearby_stars(ref_star, all_stars):
 	var nearby_stars = []
@@ -73,7 +72,7 @@ func get_max_paths(star_type):
 	
 	return 0
 	
-func add_path_between(star1, star2,scale_factor):
+func add_path_between(star1, star2):
 	#check if either star has reached their maxium path count
 	if star1.get_node("StarPaths").get_child_count() >= get_max_paths(star1.star_type) or star2.get_node("StarPaths").get_child_count() >= get_max_paths(star2.star_type):
 		return
@@ -81,19 +80,21 @@ func add_path_between(star1, star2,scale_factor):
 	#add a check for existing paths
 	print("attempting to add a path between ", star1.name, " + ", star2.name)
 	for path in star1.get_node("StarPaths").get_children():
-		if path.points[1] == star2.global_position * scale_factor:
+		if path.points[1] == star2.global_position:
 			print("Path already exists, returning...")
 			return 
 	
-	print("Star1 Position: ", star1.global_position * scale_factor)
-	print("Star2 Position: ", star2.global_position * scale_factor)
+	print("Star1 Position: ", star1.global_position)
+	print("Star2 Position: ", star2.global_position)
 	
 	var line = Line2D.new()
 	line.default_color = Color(randf(),randf(), 1)
 	line.width = 5.0
-	line.points = [star1.global_position * scale_factor, star2.global_position * scale_factor]
+	line.points = [star1.global_position, star2.global_position]
+	
+	get_parent().add_child(line)
 	
 	#add the lines as a child to the StarPaths nodes of both stars
-	star1.get_node("StarPaths").add_child(line)
-	star2.get_node("StarPaths").add_child(line)
+	#star1.get_node("StarPaths").add_child(line)
+	#star2.get_node("StarPaths").add_child(line)
 	

@@ -10,7 +10,6 @@
 script = ExtResource("1_6td8j")
 
 [node name="StarTemplates" parent="." instance=ExtResource("3_ad6hc")]
-script = null
 
 [node name="StarPath_Arm" type="Path2D" parent="."]
 curve = SubResource("Curve2D_r6uuy")

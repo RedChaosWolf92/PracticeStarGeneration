@@ -7,7 +7,7 @@ var star_types = []
 @export var NUM_STARS: int = 250
 
 var OFFSET_RANGE = 2400
-var SCALE_FACTOR = .79
+var SCALE_FACTOR = .38
 
 const MAX_ATTEMPTS = 15
 const DISPLACEMENT_STDEV = 11.2
