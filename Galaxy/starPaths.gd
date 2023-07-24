@@ -1,8 +1,8 @@
 extends Node2D
 
 var starPaths = {} # to store references to stars and their paths
-const MAX_DISTANCE = 25000
-const MIN_DISTANCE = 500
+const MAX_DISTANCE = 50000
+const MIN_DISTANCE = 250
 const MAX_ATTEMPT = 15
 
 class StarComparator:
@@ -26,20 +26,74 @@ class StarComparator:
 
 func generate_paths():
 	var all_stars = get_tree().get_nodes_in_group("stars")
+	var connectable_stars = all_stars.duplicate()
+	print("Found ", len(all_stars), "Stars")
 	for star in all_stars:
 		starPaths[star] = 0
-		var max_paths = get_max_paths(star.star_type)
-		for star_type in star.star_affinities.keys():
-			if starPaths[star] < max_paths:
-				add_path_between(star, all_stars, star_type)
+		
+	var attempts = 0
+	while attempts < MAX_ATTEMPT and len(connectable_stars):
+		var all_connected = true
+		for star in connectable_stars:
+			if starPaths[star] == 0:
+				all_connected = false
+				
+				while add_path_between(star,connectable_stars):
+					pass
+					
+		if all_connected:
+			break
+			
+		attempts += 1
+		
+	print("Final star paths: ", starPaths)
 
-	
 func path_exists_between(star1, star2):
 	for path in star1.get_node("StarPaths").get_children():
 		if path.points[1] == star2.global_position:
 			return true
 	return false
 
+func add_path_between(star1, all_stars):
+	if starPaths[star1] >= get_max_paths(star1.star_type):
+		all_stars.erase(star1)
+		return false
+		
+	var sorted_stars = all_stars.duplicate()
+	sorted_stars.sort_custom(Callable(StarComparator.new(star1), "compare"))
+	for star_type in star1.star_affinities.keys():
+		if starPaths[star1] >= get_max_paths(star1.star_type):
+			continue
+		for star2 in sorted_stars:
+			if star2.star_type != star_type or path_exists_between(star1, star2):
+				continue
+				
+			if star1 in starPaths and star2 in starPaths:	
+				if starPaths[star1] >= get_max_paths(star1.star_type) or starPaths[star2] >= get_max_paths(star2.star_type):
+					continue
+			
+			if not star1 in starPaths or not star2 in starPaths:
+				print("Star not found in Dictionary!")
+				return
+		
+		
+			print("Star1 Position: ", star1.global_position)
+			print("Star2 Position: ", star2.global_position)
+			
+			var line = Line2D.new()
+			line.default_color = Color(randf(),randf(), 1)
+			line.width = 5.0
+			line.points = [star1.global_position, star2.global_position]
+			
+			get_parent().add_child(line)
+			
+			#increase path count for each star
+			starPaths[star1] += 1
+			starPaths[star2] += 1
+			
+			return true
+		return false
+	
 
 func get_max_paths(star_type):
 	match star_type:
@@ -62,39 +116,3 @@ func get_max_paths(star_type):
 	
 	return 0
 
-func get_star_within_range(ref_star, all_stars, min_distance, max_distance):
-	var current_max_distance = min_distance + 500
-	while current_max_distance <= max_distance:
-		for star in all_stars:
-			var distance = star.global_position.distance_to(ref_star.global_position)
-			if star != ref_star and distance >= min_distance and distance < max_distance:
-				return star
-		current_max_distance += 1500
-	return null
-	
-func add_path_between(star1, all_stars, star_type):
-	if starPaths[star1] >= get_max_paths(star1.star_type):
-		return
-		
-	var star2 = get_star_within_range(star1,all_stars, star1.star_affinities[star_type], MAX_DISTANCE)
-	if star2 == null or path_exists_between(star1, star2):
-		return
-	
-	if not star1 in starPaths or not star2 in starPaths:
-		print("Star not found in Dictionary!")
-		return
-		
-		
-	print("Star1 Position: ", star1.global_position)
-	print("Star2 Position: ", star2.global_position)
-	
-	var line = Line2D.new()
-	line.default_color = Color(randf(),randf(), 1)
-	line.width = 5.0
-	line.points = [star1.global_position, star2.global_position]
-	
-	get_parent().add_child(line)
-	
-	#increase path count for each star
-	starPaths[star1] += 1
-	starPaths[star2] += 1
