@@ -1,7 +1,7 @@
 extends Node2D
 
 var starPaths = {} # to store references to stars and their paths
-const MAX_DISTANCE = 50000
+const MAX_DISTANCE = 15000
 const MIN_DISTANCE = 250
 const MAX_ATTEMPT = 15
 
@@ -32,19 +32,22 @@ func generate_paths():
 		starPaths[star] = 0
 		
 	var attempts = 0
-	while attempts < MAX_ATTEMPT and len(connectable_stars):
+	while attempts < MAX_ATTEMPT and len(connectable_stars) > 0:
 		var all_connected = true
+		print("attempt #: ", attempts)
 		for star in connectable_stars:
 			if starPaths[star] == 0:
 				all_connected = false
+				print("Star with n0 paths: ", star.name)
 				
-				while add_path_between(star,connectable_stars):
-					pass
+				if not add_path_between(star,connectable_stars):
+					print("Failed to add path for ", star.name)
+					break
 					
 		if all_connected:
 			break
-			
-		attempts += 1
+		else:
+			attempts += 1
 		
 	print("Final star paths: ", starPaths)
 
@@ -56,6 +59,7 @@ func path_exists_between(star1, star2):
 
 func add_path_between(star1, all_stars):
 	if starPaths[star1] >= get_max_paths(star1.star_type):
+		print("Star removed ", star1.name)
 		all_stars.erase(star1)
 		return false
 		
